@@ -1,8 +1,12 @@
+# Example file showing a circle moving on screen
 import pygame
 
 # pygame setup
 pygame.init()
-screen = pygame.display.set_mode((1280, 720))
+pygame.font.init()
+screenx = 1920
+screeny = 1080
+screen = pygame.display.set_mode((screenx, screeny))
 clock = pygame.time.Clock()
 running = True
 dt = 0
@@ -10,7 +14,11 @@ velocity = 0
 velocityFactor = 10
 velocitymax = 500
 velocityX = 0
+velocityY = 0
+friction = 1.5
 
+def is_whole(n):
+        return n % 1 == 0
 
 player_pos = pygame.Vector2(screen.get_width() / 2, screen.get_height() / 2)
 
@@ -19,44 +27,67 @@ while running:
         if event.type == pygame.QUIT:
             running = False
 
-    screen.fill("purple")
+    screen.fill("black")
 
-    pygame.draw.circle(screen, "red", player_pos, 40)
+    pygame.draw.circle(screen, "white", player_pos, 40)
 
     keys = pygame.key.get_pressed()
+
+    if keys[pygame.K_e]:
+        running = False
 
     if keys[pygame.K_d]:
         if velocityX < 500:
             velocityX += velocityFactor
     elif keys[pygame.K_a]:
-        if velocity > -500:
+        if velocityX > -500:
             velocityX -= velocityFactor
     else:
         if velocityX < 0:
-            velocityX += 20
+            velocityX += velocityFactor/2
         if velocityX > 0:
-            velocityX -= 20
-
+            velocityX -= velocityFactor/2
     
-    if keys[pygame.K_w]:
-        player_pos.y -= velocity * dt
     if keys[pygame.K_s]:
-        player_pos.y += velocity * dt
-    if keys[pygame.K_a]:
-        player_pos.x -= velocity * dt
-    if keys[pygame.K_d]:
-        player_pos.x += velocity * dt
-    print(velocity)
+        if velocityY < 500:
+            velocityY += velocityFactor
+    elif keys[pygame.K_w]:
+        if velocityY > -500:
+            velocityY -= velocityFactor
+    else:
+        if velocityY < 0:
+            velocityY += velocityFactor*friction
+        if velocityY > 0:
+            velocityY -= velocityFactor*friction
 
-    if velocityX < -1:
+    if velocityX < 0:
         player_pos.x += velocityX
-    if velocityX > 1:
+    if velocityX > 0:
         player_pos.x += velocityX
     
-    print(velocityX)
+    if velocityY < 0:
+        player_pos.y += velocityY
+    if velocityY > 0:
+        player_pos.y += velocityY
+    
+    velocityFactor = 10 * dt
 
     pygame.display.flip()
+    print("X Velocity:", str(round(velocityX)) + ", Y Velocity:", str(round(velocityY)), "Screen X:", str(player_pos.x))
+    dt = clock.tick(240) / 1000
 
-    dt = clock.tick(60) / 1000
+    if player_pos.x < 0:
+        player_pos.x = 0
+        velocityX = -velocityX/friction
+    if player_pos.x > screenx:
+        player_pos.x = screenx
+        velocityX = -velocityX/friction
+
+    if player_pos.y < 0:
+        player_pos.y = 0
+        velocityY = -velocityY/friction
+    if player_pos.y > screeny:
+        player_pos.y = screeny
+        velocityY = -velocityY/friction
 
 pygame.quit()
